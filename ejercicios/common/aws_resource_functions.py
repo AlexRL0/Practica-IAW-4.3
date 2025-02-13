@@ -291,3 +291,12 @@ def release_elastic_ip(public_ip):
     address = ec2.VpcAddress(allocation_id)
     address.release()
     print(f"The elastic IP {public_ip} has been released")
+
+"""
+Esperar a que una instancia este en ejecución
+"""
+def wait_for_instance_running(instance_id):
+    ec2 = boto3.resource('ec2')
+    instance = ec2.Instance(instance_id)
+    instance.wait_until_running()
+    print(f'La instancia {instance_id} está en ejecución.')
