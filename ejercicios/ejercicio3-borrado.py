@@ -1,43 +1,46 @@
+import boto3
+import botocore
 from common import aws_resource_functions as aws
-import time
+
+# Obtener todas las IPs elásticas y sus instancias asociadas
+def get_elastic_ips():
+    ec2 = boto3.client('ec2')
+    addresses = ec2.describe_addresses()
+    elastic_ips = {}
+    for address in addresses['Addresses']:
+        if 'InstanceId' in address:
+            elastic_ips[address['InstanceId']] = address['PublicIp']
+    return elastic_ips
 
 # Nombres de las instancias y grupos de seguridad
 nombres_instancias = ['frontend-1', 'frontend-2', 'backend', 'balanceador', 'nfs']
-nombres_sg = ['frontend-sg', 'backend-sg', 'balanceador-sg', 'nfs-sg']
+nombres_sg = ['frontend-sg', 'frontend-sg', 'backend-sg', 'balanceador-sg', 'nfs-sg']
 
-# Eliminar las instancias, liberar IPs elásticas y eliminar grupos de seguridad
+# Obtener IPs elásticas asignadas a cada instancia
+ips_elasticas = get_elastic_ips()
+
+# Disociar y liberar IPs elásticas
+for instance_id, ip_elastica in ips_elasticas.items():
+    try:
+        aws.disassociate_elastic_ip(ip_elastica)
+        aws.release_elastic_ip(ip_elastica)
+    except Exception as e:
+        print(f'Ocurrió un error al disociar/liberar IP {ip_elastica} para la instancia {instance_id}: {e}')
+
+# Terminar instancias
 for nombre_instancia in nombres_instancias:
-    id_instancia = aws.get_instance_id(nombre_instancia)
-    if id_instancia:
-        ip_elastica = aws.get_instance_public_ip(id_instancia)
-        if ip_elastica:
-            try:
-                aws.disassociate_elastic_ip(ip_elastica)
-                aws.release_elastic_ip(ip_elastica)
-            except Exception as e:
-                print(f'Error al desasociar o liberar IP elástica {ip_elastica} para la instancia {id_instancia}: {e}')
-        aws.terminate_instance_by_id(id_instancia)
-    else:
-        print(f'Instancia {nombre_instancia} no encontrada o ya terminada')
+    try:
+        instance_id = aws.get_instance_id(nombre_instancia)
+        if instance_id:
+            aws.terminate_instance_by_id(instance_id)
+        else:
+            print(f'No se encontró la instancia {nombre_instancia}.')
+    except Exception as e:
+        print(f'Ocurrió un error al terminar la instancia {nombre_instancia}: {e}')
 
-# Esperar un tiempo para asegurar que las instancias y IPs sean liberadas
-time.sleep(60)
-
-# Eliminar grupos de seguridad y manejar dependencias
-for nombre_sg in nombres_sg:
-    if aws.security_group_exists(nombre_sg):
-        group_id = aws.get_security_group_id(nombre_sg)
-        if group_id:
-            try:
-                # Desasociar el grupo de seguridad de las interfaces de red
-                ec2 = boto3.resource('ec2')
-                interfaces = ec2.describe_network_interfaces(Filters=[{'Name': 'group-id', 'Values': [group_id]}])
-                for interface in interfaces['NetworkInterfaces']:
-                    ec2.modify_network_interface_attribute(NetworkInterfaceId=interface['NetworkInterfaceId'], Groups=[])
-                    print(f'Interface {interface["NetworkInterfaceId"]} desasociada del grupo de seguridad {group_id}')
-                # Eliminar el grupo de seguridad
-                aws.delete_security_group(nombre_sg)
-            except Exception as e:
-                print(f'Error al eliminar el grupo de seguridad {nombre_sg}: {e}')
-    else:
-        print(f'El grupo de seguridad {nombre_sg} no se encontró o ya fue eliminado')
+# Eliminar grupos de seguridad
+for nombre_sg in set(nombres_sg):  # Usamos set para evitar duplicados
+    try:
+        aws.delete_security_group(nombre_sg)
+    except Exception as e:
+        print(f'Ocurrió un error al eliminar el grupo de seguridad {nombre_sg}: {e}')
