@@ -12,7 +12,7 @@ key_name = 'vockey'
 
 # Nombres de las instancias y grupos de seguridad
 nombres_instancias = ['frontend-1', 'frontend-2', 'backend', 'balanceador', 'nfs']
-nombres_sg = ['frontend-sg', 'backend-sg', 'balanceador-sg', 'nfs-sg']
+nombres_sg = ['frontend-sg', 'frontend-sg', 'backend-sg', 'balanceador-sg', 'nfs-sg']
 
 # Reglas para los grupos de seguridad
 reglas_sg = {
@@ -58,11 +58,31 @@ for nombre_instancia, nombre_sg in zip(nombres_instancias, nombres_sg):
         if instances and len(instances) > 0:
             id_instancia = instances[0].id
             print(f'La instancia {id_instancia} ha sido creada. Esperando a que esté en estado "running"...')
-            time.sleep(60)  # Espera de 60 segundos para asegurar que la instancia esté en estado running
-            aws.associate_elastic_ip(ips_elasticas[nombre_instancia], id_instancia)
-            print(f'IP elástica {ips_elasticas[nombre_instancia]} asociada a la instancia {id_instancia}.')
+            
+            # Esperar a que la instancia esté en estado "running"
+            instance_running = False
+            for _ in range(30):
+                instance_state = aws.describe_instance(id_instancia)['Reservations'][0]['Instances'][0]['State']['Name']
+                if instance_state == 'running':
+                    instance_running = True
+                    break
+                time.sleep(10)
+            
+            if instance_running:
+                aws.associate_elastic_ip(ips_elasticas[nombre_instancia], id_instancia)
+                print(f'IP elástica {ips_elasticas[nombre_instancia]} asociada a la instancia {id_instancia}.')
+            else:
+                print(f'La instancia {id_instancia} no alcanzó el estado "running" a tiempo.')
     except Exception as e:
         print(f'Ocurrió un error al crear y asociar IP para la instancia {nombre_instancia}: {e}')
 
-# Listar las instancias
-aws.list_instances()
+# Listar solo las instancias en estado "running"
+def listar_instancias_running():
+    instances = aws.list_instances()
+    for instance in instances:
+        instance_id = instance['InstanceId']
+        instance_state = instance['State']['Name']
+        if instance_state == 'running':
+            print(f'Instancia {instance_id} está en estado running.')
+
+listar_instancias_running()
