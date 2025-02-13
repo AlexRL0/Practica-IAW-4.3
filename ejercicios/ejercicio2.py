@@ -11,7 +11,7 @@ key_name = 'vockey'
 
 # Nombre de la instancia y grupo de seguridad
 instance_name = 'backend'
-sg_name = 'backend_sg'
+sg_name = 'backend-sg'
 
 # Comprobar que el grupo de seguridad existe
 if aws.security_group_exists(sg_name) == False:

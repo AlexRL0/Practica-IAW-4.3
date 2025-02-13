@@ -8,11 +8,12 @@ from common import aws_resource_functions as aws
 # Hacer las reglas de entrada del grupo de seguridad
 ingress_permissions = [
     {'CidrIp': '0.0.0.0/0', 'IpProtocol': 'tcp', 'FromPort': 22, 'ToPort': 22},
-    {'CidrIp': '0.0.0.0/0', 'IpProtocol': 'tcp', 'FromPort': 3306, 'ToPort': 3306}]
+    {'CidrIp': '0.0.0.0/0', 'IpProtocol': 'tcp', 'FromPort': 3306, 'ToPort': 3306}
+]
 
-# Preguntarle al usuario por el nombre del grupo y la descripcion
-sg_name = input('Security group name: ')
-sg_description = input('Security group description: ')
+# Definir el nombre y la descripción del grupo de seguridad
+sg_name = 'backend-sg'
+sg_description = 'Grupo de seguridad para el backend'
 
 # Crear el grupo de seguridad
 aws.create_security_group(sg_name, sg_description, ingress_permissions)
@@ -27,38 +28,31 @@ aws.list_security_groups()
 ## Ejercicio 2. Escriba un script de Python para crear una instancia EC2 que tengas las siguientes características: Identificador de la AMI: ami-08e637cea2f053dfa, esta AMI se corresponde con la imagen Red Hat Enterprise Linux 9 (HVM), número de instancias: 1, tipo de instancia: t2.micro, clave privada: vockey, grupo de seguridad: backend-sg, nombre de la instancia: backend.
 
 ```bash
-#!/bin/bash
-set -x
+from common import aws_resource_functions as aws
 
-# Deshabilitamos la paginación de la salida de los comandos de AWS CLI
-export AWS_PAGER=""
+# ID del AMI
+ami = 'ami-08e637cea2f053dfa'
 
-# Variables de configuración
-source .env
+# Tipo de instancia
+instance_type = 't2.micro'
 
-# Creamos una intancia EC2 para el backend
-aws ec2 run-instances \
-    --image-id $AMI_ID \
-    --count $COUNT \
-    --instance-type $INSTANCE_TYPE \
-    --key-name $KEY_NAME \
-    --security-groups $SECURITY_GROUP_BACKEND \
-    --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$INSTANCE_NAME_BACKEND}]"
-```
+# Clave privada
+key_name = 'vockey'
 
-El archivo de variables para este ejercicio quedaría tal que así:
+# Nombre de la instancia y grupo de seguridad
+instance_name = 'backend'
+sg_name = 'backend-sg'
 
-```bash
-AMI_ID=ami-08e637cea2f053dfa
-COUNT=1
-INSTANCE_TYPE=t2.micro
-KEY_NAME=vockey
+# Comprobar que el grupo de seguridad existe
+if aws.security_group_exists(sg_name) == False:
+    print('The security group does not exist')
+    exit()
 
-SECURITY_GROUP_FRONTEND=frontend-sg
-SECURITY_GROUP_BACKEND=backend-sg
+# Crear la instancia
+aws.create_instance(ami, 1, instance_type, key_name, instance_name, sg_name)
 
-INSTANCE_NAME_FRONTEND=frontend
-INSTANCE_NAME_BACKEND=backend
+# Listar las instancias
+aws.list_instances()
 ```
 
 ![Ejercicio2](imagenes/ejercicio2-4.1.png)

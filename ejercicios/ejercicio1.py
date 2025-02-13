@@ -8,7 +8,7 @@ ingress_permissions = [
 
 # Definir el nombre y la descripción del grupo de seguridad
 sg_name = 'backend-sg'
-sg_description = 'Grupo de seguridad para backend con acceso SSH y MySQL'
+sg_description = 'Grupo de seguridad para el backend'
 
 # Crear el grupo de seguridad
 aws.create_security_group(sg_name, sg_description, ingress_permissions)
