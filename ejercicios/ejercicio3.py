@@ -55,7 +55,7 @@ for nombre_instancia in nombres_instancias:
 for nombre_instancia, nombre_sg in zip(nombres_instancias, nombres_sg):
     id_instancia = aws.create_instance(ami, 1, instance_type, key_name, nombre_instancia, nombre_sg)
     if id_instancia:
-        print(f'La instancia {id_instancia} ha sido creada. Esperando a que esté en estado "running"...')
+        print(f'La instancia {id_instancia} ha sido creada. Esperando a que esté en ejecucion...')
         aws.wait_for_instance_running(id_instancia)
         ip_elastica = ips_elasticas[nombre_instancia]
         aws.associate_elastic_ip(id_instancia, ip_elastica)
