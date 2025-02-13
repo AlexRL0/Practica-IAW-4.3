@@ -55,8 +55,8 @@ aws.create_instance(ami, 1, instance_type, key_name, instance_name, sg_name)
 aws.list_instances()
 ```
 
-![Ejercicio2](imagenes/ejercicio2-4.1.png)
-![Ejercicio2-parte-2](imagenes/ejercicio2-parte2-4.1.png)
+![Ejercicio2](imagenes/ejercicio2-4.3.png)
+![Ejercicio2-parte-2](imagenes/ejercicio2-4.3-parte-2.png)
 ![Ejercicio2-parte-3](imagenes/ejercicio2-parte3-4.1.png)
 
 ## Ejercicio 3.1. Crear un script para crear la infraestructura de la práctica 1.11.
