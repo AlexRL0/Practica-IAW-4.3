@@ -291,20 +291,3 @@ def release_elastic_ip(public_ip):
     address = ec2.VpcAddress(allocation_id)
     address.release()
     print(f"The elastic IP {public_ip} has been released")
-
-"""
-Esperar a que una instancia este en ejecución
-"""
-def wait_for_instance_running(instance_id):
-    ec2 = boto3.resource('ec2')
-    instance = ec2.Instance(instance_id)
-    instance.wait_until_running()
-    print(f'La instancia {instance_id} está en estado "running".')
-
-"""
-Crear etiquetas de las instancias
-"""
-def create_tags(resource_id, tags):
-    ec2 = boto3.client('ec2')
-    tag_list = [{'Key': key, 'Value': value} for key, value in tags.items()]
-    ec2.create_tags(Resources=[resource_id], Tags=tag_list)

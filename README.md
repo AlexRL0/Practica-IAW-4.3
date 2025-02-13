@@ -117,19 +117,9 @@ for nombre_instancia in nombres_instancias:
 # Crear las instancias y asociar IPs elásticas
 for nombre_instancia, nombre_sg in zip(nombres_instancias, nombres_sg):
     id_instancia = aws.create_instance(ami, 1, instance_type, key_name, nombre_instancia, nombre_sg)
-    if id_instancia:
-        print(f'La instancia {id_instancia} ha sido creada. Esperando a que esté en estado "running"...')
-        aws.wait_for_instance_running(id_instancia)
-        ip_elastica = ips_elasticas[nombre_instancia]
-        aws.associate_elastic_ip(id_instancia, ip_elastica)
-        print(f'IP elástica {ip_elastica} asociada a la instancia {id_instancia}.')
-    else:
-        print(f'Error al crear la instancia {nombre_instancia}')
-
-# Guardar IPs elásticas en etiquetas de instancias
-for nombre_instancia, ip_elastica in ips_elasticas.items():
-    id_instancia = aws.get_instance_id(nombre_instancia)
-    aws.create_tags(id_instancia, {'ElasticIP': ip_elastica})
+    print(f'La instancia {id_instancia[0].id} ha sido creada. Esperando a que esté en estado "running"...')
+    aws.associate_elastic_ip(ips_elasticas[nombre_instancia], id_instancia[0].id)
+    print(f'IP elástica {ips_elasticas[nombre_instancia]} asociada a la instancia {id_instancia[0].id}.')
 
 # Listar las instancias
 aws.list_instances()
@@ -155,12 +145,10 @@ nombres_sg = ['frontend-sg', 'backend-sg', 'balanceador-sg', 'nfs-sg']
 for nombre_instancia in nombres_instancias:
     id_instancia = aws.get_instance_id(nombre_instancia)
     if id_instancia:
-        tags = aws.describe_tags(id_instancia)
-        ip_elastica = tags.get('ElasticIP')
+        ip_elastica = aws.get_instance_public_ip(id_instancia)
         aws.disassociate_elastic_ip(ip_elastica)
         aws.release_elastic_ip(ip_elastica)
-        aws.terminate_instance(id_instancia)
-        aws.wait_instance_terminated(id_instancia)
+        aws.terminate_instance_by_id(id_instancia)
     else:
         print(f'Instancia {nombre_instancia} no encontrada o ya terminada')
 

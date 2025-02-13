@@ -8,12 +8,10 @@ nombres_sg = ['frontend-sg', 'backend-sg', 'balanceador-sg', 'nfs-sg']
 for nombre_instancia in nombres_instancias:
     id_instancia = aws.get_instance_id(nombre_instancia)
     if id_instancia:
-        tags = aws.describe_tags(id_instancia)
-        ip_elastica = tags.get('ElasticIP')
+        ip_elastica = aws.get_instance_public_ip(id_instancia)
         aws.disassociate_elastic_ip(ip_elastica)
         aws.release_elastic_ip(ip_elastica)
-        aws.terminate_instance(id_instancia)
-        aws.wait_instance_terminated(id_instancia)
+        aws.terminate_instance_by_id(id_instancia)
     else:
         print(f'Instancia {nombre_instancia} no encontrada o ya terminada')
 
