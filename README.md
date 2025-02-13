@@ -105,9 +105,7 @@ reglas_sg = {
 # Crear grupos de seguridad si no existen
 for nombre_sg, reglas in reglas_sg.items():
     if not aws.security_group_exists(nombre_sg):
-        aws.create_security_group(nombre_sg, f'Reglas para {nombre_sg}')
-        for regla in reglas:
-            aws.authorize_security_group_ingress(nombre_sg, regla)
+        aws.create_security_group(nombre_sg, f'Reglas para {nombre_sg}', reglas)
 
 # Crear IPs elásticas
 ips_elasticas = {}
