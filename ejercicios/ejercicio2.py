@@ -1,7 +1,7 @@
 from common import aws_resource_functions as aws
 
 # ID del AMI
-ami = 'ami-08e637cea2f053dfa'
+ami = 'ami-04b4f1a9cf54c11d0'
 
 # Tipo de instancia
 instance_type = 't2.micro'
