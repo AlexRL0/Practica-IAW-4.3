@@ -132,8 +132,7 @@ for nombre_instancia, nombre_sg in zip(nombres_instancias, nombres_sg):
 # Listar las instancias
 aws.list_instances()
 ```
-
-![Ejercicio3](imagenes/ejercicio3-4.1.png)
+![Ejercicio3](imagenes/ejercicio3-4.3.png)
 ![Ejercicio3-parte-2](imagenes/ejercicio3-parte2-4.1.png)
 ![Ejercicio3-parte-3](imagenes/ejercicio3-parte3-4.1.png)
 ![Ejercicio3-parte-4](imagenes/ejercicio3-parte4-4.1.png)

@@ -259,6 +259,17 @@ def allocate_elastic_ip():
   return response['PublicIp']
 
 """
+Disassociate an elastic IP from an instance
+"""
+def disassociate_elastic_ip(public_ip):
+    ec2 = boto3.resource('ec2')
+    addresses = ec2.meta.client.describe_addresses(PublicIps=[public_ip])
+    if addresses['Addresses']:
+        association_id = addresses['Addresses'][0]['AssociationId']
+        ec2.meta.client.disassociate_address(AssociationId=association_id)
+        print(f"The elastic IP {public_ip} has been disassociated")
+
+"""
 Get the allocation id of an elastic IP
 """
 def get_allocation_id(public_ip):
