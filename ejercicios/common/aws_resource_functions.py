@@ -299,4 +299,4 @@ def wait_for_instance_running(instance_id):
     ec2 = boto3.resource('ec2')
     instance = ec2.Instance(instance_id)
     instance.wait_until_running()
-    print(f'La instancia {instance_id} está en ejecución.')
+    print(f'La instancia {instance_id} está en estado "running".')

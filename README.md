@@ -62,7 +62,6 @@ aws.list_instances()
 
 ```bash
 from common import aws_resource_functions as aws
-import time
 
 # ID del AMI
 ami = 'ami-04b4f1a9cf54c11d0'
@@ -118,9 +117,14 @@ for nombre_instancia in nombres_instancias:
 # Crear las instancias y asociar IPs elásticas
 for nombre_instancia, nombre_sg in zip(nombres_instancias, nombres_sg):
     id_instancia = aws.create_instance(ami, 1, instance_type, key_name, nombre_instancia, nombre_sg)
-    time.sleep(30)  # Esperar 30 segundos para asegurar que la instancia esté en ejecución para poder asignarle la ip elástica
-    ip_elastica = ips_elasticas[nombre_instancia]
-    aws.associate_elastic_ip(id_instancia, ip_elastica)
+    if id_instancia:
+        print(f'La instancia {id_instancia} ha sido creada. Esperando a que esté en estado "running"...')
+        aws.wait_for_instance_running(id_instancia)
+        ip_elastica = ips_elasticas[nombre_instancia]
+        aws.associate_elastic_ip(id_instancia, ip_elastica)
+        print(f'IP elástica {ip_elastica} asociada a la instancia {id_instancia}.')
+    else:
+        print(f'Error al crear la instancia {nombre_instancia}')
 
 # Guardar IPs elásticas en etiquetas de instancias
 for nombre_instancia, ip_elastica in ips_elasticas.items():
