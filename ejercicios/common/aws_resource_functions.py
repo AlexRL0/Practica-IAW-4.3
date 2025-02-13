@@ -300,3 +300,11 @@ def wait_for_instance_running(instance_id):
     instance = ec2.Instance(instance_id)
     instance.wait_until_running()
     print(f'La instancia {instance_id} está en estado "running".')
+
+"""
+Crear etiquetas de las instancias
+"""
+def create_tags(resource_id, tags):
+    ec2 = boto3.client('ec2')
+    tag_list = [{'Key': key, 'Value': value} for key, value in tags.items()]
+    ec2.create_tags(Resources=[resource_id], Tags=tag_list)
