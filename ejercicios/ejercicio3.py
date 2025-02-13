@@ -1,4 +1,5 @@
 from common import aws_resource_functions as aws
+import boto3
 import time
 
 # ID del AMI
@@ -53,30 +54,13 @@ for nombre_instancia in nombres_instancias:
 
 # Crear las instancias y asociar IPs elásticas
 for nombre_instancia, nombre_sg in zip(nombres_instancias, nombres_sg):
-    instances = aws.create_instance(ami, 1, instance_type, key_name, nombre_instancia, nombre_sg)
-    if instances is not None and len(instances) > 0:
-        id_instancia = instances[0].id
-
-        # Esperar explícitamente 30 segundos para asegurarse de que la instancia está en estado "running"
-        time.sleep(30)
-
-        # Verificar si la instancia está en estado "running"
-        instance_description = aws.describe_instance(id_instancia)
-        if instance_description and 'Reservations' in instance_description:
-            instance_state = instance_description['Reservations'][0]['Instances'][0]['State']['Name']
-            if instance_state == 'running':
-                # Intentar asignar la IP elástica varias veces si no funciona a la primera
-                for _ in range(3):
-                    try:
-                        aws.associate_elastic_ip(ips_elasticas[nombre_instancia], id_instancia)
-                        print(f'IP elástica asignada a la instancia {nombre_instancia}')
-                        break
-                    except Exception as e:
-                        print(f'Error al asignar la IP elástica a la instancia {nombre_instancia}: {e}')
-                        time.sleep(10)
-            else:
-                print(f'La instancia {id_instancia} no está en estado "running". Estado actual: {instance_state}')
-        else:
-            print(f'Error al obtener la descripción de la instancia {id_instancia}')
-    else:
-        print(f'No se pudieron crear instancias para {nombre_instancia}')
+    aws.create_instance(ami, 1, instance_type, key_name, nombre_instancia, nombre_sg)
+    id_instancia = aws.get_instance_id(nombre_instancia)
+    
+    # Verificar el estado de la instancia y esperar hasta que esté en estado "running"
+    ec2 = boto3.resource('ec2')
+    instance = ec2.Instance(id_instancia)
+    instance.wait_until_running()
+    
+    # Asociar la IP elástica a la instancia
+    aws.associate_elastic_ip(ips_elasticas[nombre_instancia], id_instancia)
