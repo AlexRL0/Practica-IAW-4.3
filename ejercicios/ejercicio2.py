@@ -9,9 +9,9 @@ instance_type = 't2.micro'
 # Clave privada
 key_name = 'vockey'
 
-# Pedir al usuario por el nombre de la máquina y el grupo para añadirlo a la instancia
-instance_name = input('Instance name: ')
-sg_name = input('Security group: ')
+# Nombre de la instancia y grupo de seguridad
+instance_name = 'backend'
+sg_name = 'backend_sg'
 
 # Comprobar que el grupo de seguridad existe
 if aws.security_group_exists(sg_name) == False:
@@ -21,5 +21,5 @@ if aws.security_group_exists(sg_name) == False:
 # Crear la instancia
 aws.create_instance(ami, 1, instance_type, key_name, instance_name, sg_name)
 
-# Listar las intancias
+# Listar las instancias
 aws.list_instances()
