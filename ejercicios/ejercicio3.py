@@ -1,4 +1,5 @@
 from common import aws_resource_functions as aws
+import time
 
 # ID del AMI
 ami = 'ami-04b4f1a9cf54c11d0'
@@ -49,14 +50,19 @@ ips_elasticas = {}
 for nombre_instancia in nombres_instancias:
     ip_elastica = aws.allocate_elastic_ip()
     ips_elasticas[nombre_instancia] = ip_elastica
-    print(f'IP elástica asignada {ip_elastica} para {nombre_instancia}')
 
 # Crear las instancias y asociar IPs elásticas
 for nombre_instancia, nombre_sg in zip(nombres_instancias, nombres_sg):
-    id_instancia = aws.create_instance(ami, 1, instance_type, key_name, nombre_instancia, nombre_sg)
-    print(f'La instancia {id_instancia[0].id} ha sido creada. Esperando a que esté en estado "running"...')
-    aws.associate_elastic_ip(ips_elasticas[nombre_instancia], id_instancia[0].id)
-    print(f'IP elástica {ips_elasticas[nombre_instancia]} asociada a la instancia {id_instancia[0].id}.')
+    try:
+        instances = aws.create_instance(ami, 1, instance_type, key_name, nombre_instancia, nombre_sg)
+        if instances and len(instances) > 0:
+            id_instancia = instances[0].id
+            print(f'La instancia {id_instancia} ha sido creada. Esperando a que esté en estado "running"...')
+            time.sleep(60)  # Espera de 60 segundos para asegurar que la instancia esté en estado running
+            aws.associate_elastic_ip(ips_elasticas[nombre_instancia], id_instancia)
+            print(f'IP elástica {ips_elasticas[nombre_instancia]} asociada a la instancia {id_instancia}.')
+    except Exception as e:
+        print(f'Ocurrió un error al crear y asociar IP para la instancia {nombre_instancia}: {e}')
 
 # Listar las instancias
 aws.list_instances()
