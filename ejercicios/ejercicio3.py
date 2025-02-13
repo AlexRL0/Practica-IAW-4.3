@@ -13,11 +13,38 @@ key_name = 'vockey'
 nombres_instancias = ['frontend-1', 'frontend-2', 'backend', 'balanceador', 'nfs']
 nombres_sg = ['frontend-sg', 'backend-sg', 'balanceador-sg', 'nfs-sg']
 
-# Comprobar que los grupos de seguridad existen
-for nombre_sg in nombres_sg:
+# Reglas para los grupos de seguridad
+reglas_sg = {
+    'frontend-sg': [
+        {'IpProtocol': 'tcp', 'FromPort': 22, 'ToPort': 22, 'CidrIp': '0.0.0.0/0'},
+        {'IpProtocol': 'tcp', 'FromPort': 2049, 'ToPort': 2049, 'CidrIp': '0.0.0.0/0'},
+        {'IpProtocol': 'tcp', 'FromPort': 80, 'ToPort': 80, 'CidrIp': '0.0.0.0/0'},
+        {'IpProtocol': 'tcp', 'FromPort': 443, 'ToPort': 443, 'CidrIp': '0.0.0.0/0'},
+        {'IpProtocol': 'tcp', 'FromPort': 3306, 'ToPort': 3306, 'CidrIp': '0.0.0.0/0'}
+    ],
+    'backend-sg': [
+        {'IpProtocol': 'tcp', 'FromPort': 22, 'ToPort': 22, 'CidrIp': '0.0.0.0/0'},
+        {'IpProtocol': 'tcp', 'FromPort': 3306, 'ToPort': 3306, 'CidrIp': '0.0.0.0/0'}
+    ],
+    'balanceador-sg': [
+        {'IpProtocol': 'tcp', 'FromPort': 22, 'ToPort': 22, 'CidrIp': '0.0.0.0/0'},
+        {'IpProtocol': 'tcp', 'FromPort': 3306, 'ToPort': 3306, 'CidrIp': '0.0.0.0/0'},
+        {'IpProtocol': 'tcp', 'FromPort': 80, 'ToPort': 80, 'CidrIp': '0.0.0.0/0'},
+        {'IpProtocol': 'tcp', 'FromPort': 443, 'ToPort': 443, 'CidrIp': '0.0.0.0/0'},
+        {'IpProtocol': 'tcp', 'FromPort': 2049, 'ToPort': 2049, 'CidrIp': '0.0.0.0/0'}
+    ],
+    'nfs-sg': [
+        {'IpProtocol': 'tcp', 'FromPort': 22, 'ToPort': 22, 'CidrIp': '0.0.0.0/0'},
+        {'IpProtocol': 'tcp', 'FromPort': 2049, 'ToPort': 2049, 'CidrIp': '0.0.0.0/0'}
+    ]
+}
+
+# Crear grupos de seguridad si no existen
+for nombre_sg, reglas in reglas_sg.items():
     if not aws.security_group_exists(nombre_sg):
-        print(f'El grupo de seguridad {nombre_sg} no existe')
-        exit()
+        aws.create_security_group(nombre_sg, f'Reglas para {nombre_sg}')
+        for regla in reglas:
+            aws.authorize_security_group_ingress(nombre_sg, regla)
 
 # Crear IPs elásticas
 ips_elasticas = {}
@@ -32,6 +59,11 @@ for nombre_instancia, nombre_sg in zip(nombres_instancias, nombres_sg):
     aws.wait_instance_running(id_instancia)
     ip_elastica = ips_elasticas[nombre_instancia]
     aws.associate_elastic_ip(id_instancia, ip_elastica)
+
+# Guardar IPs elásticas en etiquetas de instancias
+for nombre_instancia, ip_elastica in ips_elasticas.items():
+    id_instancia = aws.get_instance_id(nombre_instancia)
+    aws.create_tags(id_instancia, {'ElasticIP': ip_elastica})
 
 # Listar las instancias
 aws.list_instances()
