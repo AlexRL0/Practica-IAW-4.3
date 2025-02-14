@@ -130,10 +130,8 @@ for nombre_instancia, nombre_sg in zip(nombres_instancias, nombres_sg):
 ```
 ![Ejercicio3](imagenes/ejercicio3-4.3.png)
 ![Ejercicio3-parte-2](imagenes/ejercicio3-4.3-parte2.png)
-![Ejercicio3-parte-3](imagenes)
-![Ejercicio3-parte-4](imagenes)
-![Ejercicio3-parte-5](imagenes)
-![Ejercicio3-parte-6](imagenes)
+![Ejercicio3-parte-3](imagenes/ejercicio3-4.3-parte3.png)
+![Ejercicio3-parte-4](imagenes/ejercicio3-4.3-parte4.png)
 
 ## Ejercicio 3.2. Crear un script para la eliminación de la infraestructura de la práctica 1.11.
 
