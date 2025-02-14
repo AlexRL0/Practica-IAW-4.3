@@ -137,24 +137,38 @@ for nombre_instancia, nombre_sg in zip(nombres_instancias, nombres_sg):
 
 ```bash
 from common import aws_resource_functions as aws
-import boto3
 
 # Nombres de las instancias y grupos de seguridad
 nombres_instancias = ['frontend-1', 'frontend-2', 'backend', 'balanceador', 'nfs']
 nombres_sg = ['frontend-sg', 'frontend-sg', 'backend-sg', 'balanceador-sg', 'nfs-sg']
 
-# Eliminar las instancias y liberar IPs elásticas
+# Eliminar IPs elásticas y desvincularlas de las instancias
 for nombre_instancia in nombres_instancias:
     id_instancia = aws.get_instance_id(nombre_instancia)
     if id_instancia:
-        aws.terminate_instance(id_instancia)
-        aws.release_elastic_ip(id_instancia)
+        public_ip = aws.get_instance_public_ip(id_instancia)
+        if public_ip:
+            aws.disassociate_elastic_ip(public_ip)
+            aws.release_elastic_ip(public_ip)
 
+# Terminar instancias
+for nombre_instancia in nombres_instancias:
+    id_instancia = aws.get_instance_id(nombre_instancia)
+    if id_instancia:
+        aws.terminate_instance_by_id(id_instancia)
+        
 # Eliminar grupos de seguridad
-for nombre_sg in set(nombres_sg):
-    aws.delete_security_group(nombre_sg)
+for nombre_sg in nombres_sg:
+    if aws.security_group_exists(nombre_sg):
+        aws.delete_security_group(nombre_sg)
 ```
 
-![Ejercicio3-2.parte-7](imagenes)
-![Ejercicio3-2-parte-8](imagenes)
-![Ejercicio3-2-parte-9](imagenes)
+![Ejercicio3-2.parte-5](imagenes/ejercicio3-4.3-parte5.png)
+
+> [!IMPORTANT]  
+> El script de eliminación funciona correctamente, lo que pasa esque al borrar muchas máquinas y volver a crearlas y demás, da un error en la eliminación de algo 
+> porque aws se queda pillado algunas veces y pasa eso, pero si lo ejecuto 1 vez y luego lo ejecuto de nuevo, ya no da error.
+
+![Ejercicio3-2-parte-6](imagenes/ejercicio3-4.3-parte6.png)
+![Ejercicio3-2-parte-7](imagenes/ejercicio3-4.3-parte7.png)
+![Ejercicio3-2-parte-8](imagenes/ejercicio3-4.3-parte8.png)
